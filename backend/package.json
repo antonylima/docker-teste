@@ -1,0 +1,14 @@
+{
+  "name": "cadastro-backend",
+  "version": "1.0.0",
+  "description": "API REST para cadastro e listagem de pessoas e enderecos",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0"
+  }
+}
