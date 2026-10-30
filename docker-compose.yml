@@ -1,0 +1,82 @@
+services:
+  # ---------------------------------------------------------------
+  # 1) BANCO DE DADOS - MySQL 8 com volume nomeado para persistência
+  # ---------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: cadastro_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      # Volume nomeado: garante que os dados sobrevivam à remoção do container
+      - db_data:/var/lib/mysql
+      # Script de criação da tabela, executado na primeira inicialização
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    # Obs.: a porta 3306 NÃO é publicada no host de propósito.
+    # Apenas o backend precisa acessar o banco, e isso acontece pela rede interna.
+
+  # ---------------------------------------------------------------
+  # 2) BACKEND - API REST em Node.js + Express
+  # ---------------------------------------------------------------
+  backend:
+    build: ./backend
+    container_name: cadastro_backend
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      DB_HOST: db            # nome do serviço -> resolvido pelo DNS interno do Docker
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ---------------------------------------------------------------
+  # 3) FRONTEND - React (Vite) compilado e servido por Nginx
+  # ---------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # URL usada pelo NAVEGADOR do usuário (fora da rede Docker),
+        # por isso aponta para a porta publicada do backend no host.
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: cadastro_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+# -----------------------------------------------------------------
+# Rede compartilhada pelos três serviços (comunicação interna)
+# -----------------------------------------------------------------
+networks:
+  app-network:
+    driver: bridge
+
+# -----------------------------------------------------------------
+# Volume nomeado gerenciado pelo Docker (persistência dos dados)
+# -----------------------------------------------------------------
+volumes:
+  db_data:
