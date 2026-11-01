@@ -35,14 +35,14 @@ services:
     container_name: cadastro_backend
     restart: unless-stopped
     environment:
-      PORT: 3001
+      PORT: 3002
       DB_HOST: db            # nome do serviço -> resolvido pelo DNS interno do Docker
       DB_PORT: 3306
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
       DB_NAME: ${MYSQL_DATABASE}
     ports:
-      - "3002:3001"
+      - "3002:3002"
     depends_on:
       db:
         condition: service_healthy
