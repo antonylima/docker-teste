@@ -57,7 +57,7 @@ services:
       context: ./frontend
       args:
         # URL usada pelo NAVEGADOR do usuário (fora da rede Docker),
-        # por isso aponta para a porta publicada do backend no host.
+        # por ela isso aponta para a porta publicada do backend no host.
         VITE_API_URL: ${VITE_API_URL}
     container_name: cadastro_frontend
     restart: unless-stopped
