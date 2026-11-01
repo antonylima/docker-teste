@@ -5,7 +5,7 @@ const { pool, conectarComRetry } = require('./db');
 const { validarPessoa } = require('./validacao');
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = Number(process.env.PORT) || 3002;
 
 app.use(cors());
 app.use(express.json());
